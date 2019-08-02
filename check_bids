@@ -13,7 +13,7 @@ dataset="${1}"
 
 # check if directory exists and run validator
 if [[ -d "${dir}/${dataset}" ]]; then
-	docker run -ti --rm -v "${dir}/${dataset}:/data:ro" bids/validator /data
+	docker run -ti --rm -v "${dir}/${dataset}:/data:ro" bids/validator:latest /data
 else
 	echo "${dir}/${dataset} does not exist..."
 	exit 1
