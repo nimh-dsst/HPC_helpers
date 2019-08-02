@@ -1,11 +1,13 @@
-Check BIDS
+
 
 Simple shell script to run the [bids-validator](https://github.com/bids-standard/bids-validator) docker command on a directory:
 
 
+Usage:
 `check_bids [directory]`
 
-will run:
+
+... which will run:
 
 `docker run -ti --rm -v directory:/data:ro bids/validator /data`
 
