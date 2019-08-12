@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+#https://github.com/bids-standard/bids-validator
+# use BIDS validator using a singularity image
+# must have acces to /data/DSST
+
+# if no arguments are given
+if [[ $# = 0 ]]; then
+	echo "Usage: is_bids_sing [directory]"
+	exit 1
+fi
+
+# create full path
+dir=`pwd`
+dataset="${1}"
+
+# check if directory exists and run validator
+if [[ -d "${dir}/${dataset}" ]]; then
+	module load singularity
+	singularity run -B ${1}:/data /data/DSST/containers/bids-validator-1.2.5.simg /data
+else
+	echo "${dir}/${dataset} does not exist..."
+	exit 1
+fi

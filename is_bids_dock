@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+#https://github.com/bids-standard/bids-validator
+# use BIDS validator using the latest docker image
+
+# if no arguments are given
+if [[ $# = 0 ]]; then
+	echo "Usage: is_bids_dock [directory]"
+	exit 1
+fi
+
+# create full path
+dir=`pwd`
+dataset="${1}"
+
+# check if directory exists and run validator
+if [[ -d "${dir}/${dataset}" ]]; then
+	docker run -ti --rm -v "${dir}/${dataset}:/data:ro" bids/validator:latest /data
+else
+	echo "${dir}/${dataset} does not exist..."
+	exit 1
+fi
