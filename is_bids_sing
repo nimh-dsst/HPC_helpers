@@ -9,14 +9,33 @@ if [[ $# = 0 ]]; then
 	exit 1
 fi
 
-# create full path
+# check for verbosity
+verb=''
+while (( $# > 1 )); do
+	case "$1" in
+		"-v")
+		shift
+		verb='--verbose'
+		;;
+	esac
+done
+
+# check if singularity image exists
+image=/data/DSST/containers/bids-validator-1.2.5.simg
+if [[ ! -f "${image}" ]]; then
+	echo "Singularity image not found"
+	exit 1
+fi
+
+# grab last argument and create full path
+for i in $@; do :; done
 dir=`pwd`
-dataset="${1}"
+dataset="${i}"
 
 # check if directory exists and run validator
 if [[ -d "${dir}/${dataset}" ]]; then
 	module load singularity
-	singularity run -B ${1}:/data /data/DSST/containers/bids-validator-1.2.5.simg /data
+	singularity run -B ${1}:/data /data/DSST/containers/bids-validator-1.2.5.simg ${verb} /data
 else
 	echo "${dir}/${dataset} does not exist..."
 	exit 1
