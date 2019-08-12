@@ -21,7 +21,8 @@ Usage:
 
 `singularity run -B directory:/data bids-validator-1.2.4.simg /data`
 
-note: you must have access to /data/DSST/containers for the singularity command to work
+
+*you must have access to /data/DSST/containers for the singularity command to work*
 
 
 
