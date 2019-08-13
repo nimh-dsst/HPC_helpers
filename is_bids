@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+#https://github.com/bids-standard/bids-validator
+
+#TODO add ignore options
+
+# set defaults
+# default simgularity container on NIH HCP
+image=/data/DSST/containers/bids-validator-1.2.5.simg
+verb=""
+docker="no"
+
+# help file
+usage() {
+	echo
+	echo "Usage: `basename $0` [options] directory"
+	echo
+	echo "This script was written primarily for use on the NIH HCP system."
+	echo "Default usage assumes that you have access to the singularity container housed"
+	echo "in /data/DSST/containers. If you do not have access to this directory, you can"
+	echo "specify your own singularity image using the -simg option."
+	echo
+	echo "[options]:"
+	echo "  -h             display this help file and exit"
+	echo "  -v             use for '--verbose' option in the validator"
+	echo "                   default is no verbosity"
+	echo "  -docker        choose to use the latest docker image"
+	echo "                   default is no docker"
+	echo "  -simg image    specify path to singularity image"
+	echo "                   default is /data/DSST/containers/bids-validator-1.2.5.simg"
+	echo
+	exit 1
+}
+
+# if no arguments are given
+if [[ $# = 0 ]]; then
+	usage
+fi
+
+# parse arguments and prepare
+for i in $@; do :
+	case "$i" in
+		"-h")
+			usage
+		;;
+		"-docker")
+			docker="yes"
+			shift
+		;;
+		"-v")
+			verb="--verbose"
+			shift
+		;;
+		"-simg")
+			image=$2
+			shift
+		;;
+		-*)
+			echo "ERROR: Unknown option"
+			usage
+			echo 1
+	esac
+done
+
+# grab the last argument and check that it's a directory
+dir=`echo "$(cd "$(dirname "$i")" && pwd)/$(basename "$i")"`
+if [[ ! -d "$dir" ]]; then
+	echo
+	echo "ERROR: $dir is not a directory..."
+	usage
+fi
+
+# docker or singularity
+if [[ "$docker" == "yes" ]]; then
+	docker run -ti --rm -v "${dir}:/data:ro" bids/validator:latest ${verb} /data
+else
+	if [[ ! -f "${image}" ]]; then
+		echo "Singularity image not found"
+		exit 1
+	else
+		module load singularity
+		singularity run -B ${dir}:/data ${image} ${verb} /data
+	fi
+fi
