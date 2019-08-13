@@ -1,31 +1,19 @@
 
-
 Simple shell script to run the [bids-validator](https://github.com/bids-standard/bids-validator) command on a directory.
 
+This script was primarily written to make running the [bids-validator](https://github.com/bids-standard/bids-validator) on the [NIH HCP system](https://hpc.nih.gov) easier.
 
-Usage:
-`is_bids_dock [directory]`
+Usage: `is_bids [options] directory`
 
-... which will run:
+Default usage assumes that you have access to the singularity container housed
+in /data/DSST/containers. If you do not have access to this directory, you can
+specify your own singularity image using the -simg option.
 
-`docker run -ti --rm -v directory:/data:ro bids/validator /data`
-
-
-or
-
-
-Usage:
-`is_bids_sing [directory]`
-
-... which will run:
-
-`singularity run -B directory:/data bids-validator-1.2.4.simg /data`
-
-
-*you must have access to /data/DSST/containers for the singularity command to work*
-
-
-
-
-Note: Both scripts will expand [directory] to its absolute path, so no need to specify full path.
-
+[options]:
+  -h             display this help file and exit
+  -v             use for `--verbose` option in the validator
+                     default is no verbosity
+  -docker        choose to use the latest docker image
+                    default is no docker
+  -simg image    specify path to singularity image
+                    default is /data/DSST/containers/bids-validator-1.2.5.simg
