@@ -7,6 +7,7 @@ Default usage assumes that you have access to the singularity container housed
 in /data/DSST/containers. If you do not have access to this directory, you can
 specify your own singularity image using the -simg option.
 
+<pre>
 [options]:  
   -h             display this help file and exit  
   -v             use for `--verbose` option in the validator  
@@ -15,3 +16,4 @@ specify your own singularity image using the -simg option.
                     default is no docker  
   -simg image    specify path to singularity image  
                     default is /data/DSST/containers/bids-validator-1.2.5.simg  
+</pre>
