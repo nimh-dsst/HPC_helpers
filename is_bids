@@ -12,20 +12,6 @@ docker="no"
 # help file
 usage() {
 	echo
-	echo
-	echo "<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>"
-	echo "    This shell script makes runnning the BIDS validator on the NIH HPC easier"
-	echo
-	echo "  HPC usage note: Script must be run from a compute node since Singularity is"
-	echo "  not available on the login node. Use sinteractive or spersist o connect to"
-	echo "  an interactive session."
-	echo
-	echo "  Resources:"
-	echo "    BIDS validator:    https://github.com/bids-standard/bids-validator"
-	echo "    NIH HPC:           https://hpc.nih.gov"
-	echo "<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>"
-	echo
-	echo
 	echo "Usage: `basename $0` [options] directory"
 	echo
 	echo "Default usage assumes that you have access to the singularity container housed"
@@ -68,7 +54,8 @@ for i in $@; do :
 			shift
 		;;
 		-*)
-			echo "ERROR: Unknown option"
+			echo
+			echo "ERROR: Unknown option: $1"
 			usage
 			echo 1
 	esac
@@ -79,6 +66,7 @@ dir=`echo "$(cd "$(dirname "$i")" && pwd)/$(basename "$i")"`
 if [[ ! -d "$dir" ]]; then
 	echo
 	echo "ERROR: $dir is not a directory..."
+	echo
 	usage
 fi
 
