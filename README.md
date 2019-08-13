@@ -1,7 +1,5 @@
 
-Simple shell script to run the [bids-validator](https://github.com/bids-standard/bids-validator) command on a directory.
-
-This script was primarily written to make running the [bids-validator](https://github.com/bids-standard/bids-validator) on the [NIH HCP system](https://hpc.nih.gov) easier.
+This simple shell script was primarily written to make running the [bids-validator](https://github.com/bids-standard/bids-validator) on the [NIH HCP system](https://hpc.nih.gov) easier.
 
 Usage: `is_bids [options] directory`
 
