@@ -75,7 +75,9 @@ if [[ "$docker" == "yes" ]]; then
 	docker run -ti --rm -v "${dir}:/data:ro" bids/validator:latest ${verb} /data
 else
 	if [[ ! -f "${image}" ]]; then
-		echo "Singularity image not found"
+		echo
+		echo "ERROR: Singularity image not found"
+		echo
 		exit 1
 	else
 		module load singularity
