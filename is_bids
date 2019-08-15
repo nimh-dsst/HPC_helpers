@@ -80,7 +80,9 @@ else
 		echo
 		usage
 	else
-		module load singularity
+		if [[ ! `command -v singularity` ]]; then
+			module load singularity
+		fi
 		singularity run -B ${dir}:/data ${image} ${verb} /data
 	fi
 fi
