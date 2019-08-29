@@ -41,4 +41,4 @@ The workflow occurs in two steps:
 
 2. Connecting to your spersist session
   * Open Terminal
-  * Run: `spersist-connect.sh` from your local machine
+  * Run: `./spersist-connect.sh` from your local machine
