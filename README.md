@@ -32,13 +32,13 @@ The pair of spersist- scripts help create, save, and return to a continuous sper
 The workflow occurs in two steps:
 
 1. Create an spersist session (this only needs to be done once after each Biowulf reboot)
-  1. Log onto Biowulf login node: `ssh user@biowulf.nih.gov`
-  2. Start a tmux session: `tmux`
-  3. Initiate an spersist session: `spersist --vnc --tunnel`
-  4. Save your session environment variables: `./spersist-store.sh`
+  * Log onto Biowulf login node: `ssh user@biowulf.nih.gov`
+  * Start a tmux session: `tmux`
+  * Initiate an spersist session: `spersist --vnc --tunnel`
+  * Save your session environment variables: `./spersist-store.sh`
 
   At this point you can keep your terminal open, or close out. As long as you do not `exit` the session, it will remain open.
 
 2. Connecting to your spersist session
-  1. Open Terminal
-  2. Run: `spersist-connect.sh`
+  * Open Terminal
+  * Run: `spersist-connect.sh`
