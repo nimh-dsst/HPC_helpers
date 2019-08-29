@@ -27,18 +27,18 @@ specify your own singularity image using the -simg option.
 ### spersist helpers
 
 The pair of spersist- scripts help create, save, and return to a continuous spersist session.
-`spersist-store.sh` is a script that will be kept remotely, whereas `spersist-connect.sh` will be stored locally.
+`spersist-store.sh` is a script that should be kept remotely, whereas `spersist-connect.sh` should be stored locally.
 
 The workflow occurs in two steps:
 
 1. Create an spersist session (this only needs to be done once after each Biowulf reboot)
-   1. Log onto Biowulf login node: `ssh user@biowulf.nih.gov`
-   2. Start a tmux session: `tmux`
-   3. Initiate an spersist session: `spersist --vnc --tunnel`
-   4. Save your session environment variables: `./spersist-store.sh`
+  1. Log onto Biowulf login node: `ssh user@biowulf.nih.gov`
+  2. Start a tmux session: `tmux`
+  3. Initiate an spersist session: `spersist --vnc --tunnel`
+  4. Save your session environment variables: `./spersist-store.sh`
 
-   At this point you can keep your terminal open, or close out. As long as you do not `exit` the session, it will remain open.
+  At this point you can keep your terminal open, or close out. As long as you do not `exit` the session, it will remain open.
 
 2. Connecting to your spersist session
-   1. Open Terminal
-   2. Run: `spersist-connect.sh`
+  1. Open Terminal
+  2. Run: `spersist-connect.sh`
