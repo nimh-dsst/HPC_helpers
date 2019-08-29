@@ -10,7 +10,7 @@ The pair of spersist helper scripts store environment information about and re-c
 
 The workflow occurs in two steps:
 
-1. Create an `spersist` session (only required once after each Biowulf reboot)
+**1.** Create an `spersist` session (only required once after each Biowulf reboot)
   * Log onto the Biowulf login node: `ssh user@biowulf.nih.gov`
   * Start a tmux session: `tmux`
   * Initiate an spersist session: `spersist --vnc --tunnel`
@@ -18,9 +18,9 @@ The workflow occurs in two steps:
 
   At this point you can keep your terminal open, or close out. As long as you do not `exit` the session, it will remain open.
 
-    `spersist-store.sh` records relevant session environment variables to `~/.spersist`, which will allow you to re-connect to the session. Perhaps unintuitively, the `.spersist` environemnt variables are not preseved when you re-connect to your session. If you'd like access to these variables (say to run a jupyter notebook), you can run `source ~/.spersist` or examine the file to manually enter the variables.
+`spersist-store.sh` records relevant session environment variables to `~/.spersist`, which will allow you to re-connect to the session. Perhaps unintuitively, the `.spersist` environemnt variables are not preseved when you re-connect to your session. If you'd like access to these variables (say to run a jupyter notebook), you can run `source ~/.spersist` or examine the file to manually enter the variables.
 
-2. Re-connect to your `spersist` session
+**2.** Re-connect to your `spersist` session
   * Open Terminal
   * Run helper script from your local machine: `spersist-connect.sh`
 
