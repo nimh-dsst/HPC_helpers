@@ -5,12 +5,12 @@ Simple shell scripts for making your life on the [NIH HPC system](https://hpc.ni
 
 ## spersist helpers
 
-The pair of spersist helper scripts store environemnt information about and re-connect to a continuous spersist session.
+The pair of spersist helper scripts store environment information about and re-connect to a continuous spersist session.
 `spersist-store.sh` is a script that should be kept remotely, whereas `spersist-connect.sh` should be stored locally. 
 
 The workflow occurs in two steps:
 
-1. Create an spersist session (only required once after each Biowulf reboot)
+1. Create an `spersist` session (only required once after each Biowulf reboot)
   * Log onto the Biowulf login node: `ssh user@biowulf.nih.gov`
   * Start a tmux session: `tmux`
   * Initiate an spersist session: `spersist --vnc --tunnel`
@@ -18,16 +18,17 @@ The workflow occurs in two steps:
 
   At this point you can keep your terminal open, or close out. As long as you do not `exit` the session, it will remain open.
 
-  `spersist-store.sh` records relevant session environment variables to `~/.spersist`, which will allow you to re-connect to the session. If you'd like to activate these variables run `source ~/.spersist`. Perhaps unintuitively, the `.spersist` environemnt variables are not preseved when you connect to your spersist session. If you'd like access to these variables (say to run a jupyter notebook), you can source the `.spersist` file or examine the file to manually enter the variables.
+    `spersist-store.sh` records relevant session environment variables to `~/.spersist`, which will allow you to re-connect to the session. Perhaps unintuitively, the `.spersist` environemnt variables are not preseved when you re-connect to your session. If you'd like access to these variables (say to run a jupyter notebook), you can run `source ~/.spersist` or examine the file to manually enter the variables.
 
-2. Connecting to your spersist session
+2. Re-connect to your `spersist` session
   * Open Terminal
   * Run helper script from your local machine: `spersist-connect.sh`
 
-`spersist-connect.sh` downloads your remote `.spersist` file and uses it to create an ssh tunnel from your local computer to the compute node. Since we used `--vnc` you can also open a TurboVNC Desktop if you so choose.
+
+`spersist-connect.sh` downloads your remote `.spersist` file and uses it to create an ssh tunnel from your local computer to the compute node. Since we used `--vnc`, you can also open a TurboVNC Desktop, if you so choose.
 
 
-**Note**: It is in your best interest to set up [ssh keys](https://www.cyberciti.biz/faq/how-to-set-up-ssh-keys-on-linux-unix/) to connect to the system. Otherwise you will need to enter your password three (yes *three*) times to run `spersist-connect.sh`. The purpose of this is not to annoy you but to 1. check if the `.spersist` file exists remotely, 2. download the `.spersist` file, and 3. connect to te compute node.
+**Note**: It is in your best interest to set up [ssh keys](https://www.cyberciti.biz/faq/how-to-set-up-ssh-keys-on-linux-unix/) to connect to the system. Otherwise you will need to enter your password three (yes *three*) times to run `spersist-connect.sh`. The purpose of this is not to annoy you, but to 1. check the existence of the remote `.spersist` file, 2. download `.spersist`, and 3. connect to the compute node.
 
 
 
