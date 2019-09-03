@@ -39,11 +39,10 @@ This shell script helps you run the [bids-validator](https://github.com/bids-sta
 **HPC usage note**: Script must be run from a compute node since Singularity is not available on the login node. Use `sinteractive` or `spersist` to connect to an interactive session. See [here](https://hpc.nih.gov/docs/userguide.html) for more information.
 
 
-Usage: `is_bids [options] directory`
+Usage: `is_bids.sh [options] directory`
 
-Default usage assumes that you have access to the singularity container housed
-in /data/DSST/containers. If you do not have access to this directory, you can
-specify your own singularity image using the -simg option.
+Default usage assumes that `is_bids.sh` and a bids-validator singularity image (included in this repo) are contained within the same directory.
+If this is not the case or if you'd like to use another singularity image, please specify with the `-simg` option.
 
 <pre>
 [options]:  
@@ -53,7 +52,7 @@ specify your own singularity image using the -simg option.
   -docker        specify to use the latest docker image instead of singularity    
                     default is no docker (docker is not available on the HPC)  
   -simg image    specify path to singularity image  
-                    default is /data/DSST/containers/bids-validator-1.2.5.simg  
+                    default will look in the same directory as is_bids.sh  
 </pre>
 
 
