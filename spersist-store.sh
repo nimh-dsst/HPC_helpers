@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
+# check if you're in the right environment
 if [[ -z ${PORT1} || -z ${PORT_VNC} || -z ${SLURMD_NODENAME} ]]; then
 	echo
 	echo "ERROR: Environemnt variables not found"
-	echo "Please run 'spersist --nvc --tunnel' prior to running this script"
+	echo "Please run 'spersist --vnc --tunnel' prior to running this script"
 	echo
 	exit 1
 else
