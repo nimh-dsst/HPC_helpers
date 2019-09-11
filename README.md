@@ -30,7 +30,14 @@ The workflow occurs in two steps:
 
 **Note**: It is in your best interest to set up [ssh keys](https://www.cyberciti.biz/faq/how-to-set-up-ssh-keys-on-linux-unix/) to connect to the system. Otherwise you will need to enter your password three (yes *three*) times to run `spersist-connect.sh`. The purpose of this is not to annoy you, but to 1. check the existence of the remote `.spersist` file, 2. download `.spersist`, and 3. connect to the compute node.
 
+### .spersist environment variables
+`$PORT1`              port to compute node, include this port to interact with a jupyter notebook locally:
 
+`jupyter notebook --no-browser --port=$PORT1`
+
+`$PORT_VNC`           VNC port, include this port to connect to a [TurboVNC](https://www.turbovnc.org/) session
+
+`$SLURMD_NODENAME`    Name of your compute node
 
 ## is_bids
 
