@@ -12,32 +12,34 @@ The workflow occurs in two steps:
 
 **1.** Create an `spersist` session (only required once after each Biowulf reboot)
   * Log onto the Biowulf login node: `ssh user@biowulf.nih.gov`
+  * Load tmux `module load tmux`
   * Start a tmux session: `tmux`
   * Initiate an spersist session: `spersist --vnc --tunnel`
+    - NB: `--vnc` and `--tunnel` are optional, any number of tunnels are accepted
   * Save your session environment variables using helper script: `spersist-store.sh`
 
   At this point you can keep your terminal open, or close out. As long as you do not `exit` the session, it will remain open.
 
-`spersist-store.sh` records relevant session environment variables to `~/.spersist`, which will allow you to re-connect to the session. Perhaps unintuitively, the `.spersist` environment variables are not preserved when you re-connect to your session. If you'd like access to these variables (say to run a jupyter notebook), you can run `source ~/.spersist` or examine the file to manually enter the variables.
+`spersist-store.sh` records relevant session environment variables to `~/.spersist`, which will allow you to re-connect to the session. Perhaps unintuitively, the `.spersist` environment variables are not preserved when you re-connect to your session. If you'd like access to these variables (say to run a jupyter notebook), you can run `source ~/.spersist` or examine the file to manually enter the port numbers.
 
 **2.** Re-connect to your `spersist` session
   * Open Terminal
   * Run helper script from your local machine: `spersist-connect.sh`
 
 
-`spersist-connect.sh` downloads your remote `.spersist` file and uses it to create an ssh tunnel from your local computer to the compute node. Since we used `--vnc`, you can also open a TurboVNC Desktop, if you so choose.
+`spersist-connect.sh` downloads your remote `.spersist` file and uses it to create an ssh tunnel from your local computer to the compute node. Since we used `--vnc` in the abive example, you can also open a TurboVNC Desktop, if you so choose.
 
 
 **Note**: It is in your best interest to set up [ssh keys](https://www.cyberciti.biz/faq/how-to-set-up-ssh-keys-on-linux-unix/) to connect to the system. Otherwise you will need to enter your password three (yes *three*) times to run `spersist-connect.sh`. The purpose of this is not to annoy you, but to 1. check the existence of the remote `.spersist` file, 2. download `.spersist`, and 3. connect to the compute node.
 
 ### .spersist environment variables
-`$PORT1`: port to compute node, include this port to interact with a jupyter notebook locally:
+`$PORT1 ... $PORTn`: tunnels to the compute node, any number of tunnels are accepted. One example of port usage is to connect your local browser to a remote jupyter notebook:
 
 `jupyter notebook --no-browser --port=$PORT1`
 
 `$PORT_VNC`: VNC port, include this port to connect to a [TurboVNC](https://www.turbovnc.org/) session
 
-`$SLURMD_NODENAME`: Name of your compute node
+The script also records all your favorite slurm environment variables.
 
 ## is_bids
 
