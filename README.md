@@ -27,10 +27,10 @@ The workflow occurs in two steps:
   * Run helper script from your local machine: `spersist-connect.sh`
 
 
-`spersist-connect.sh` downloads your remote `.spersist` file and uses it to create an ssh tunnel from your local computer to the compute node. Since we used `--vnc` in the abive example, you can also open a TurboVNC Desktop, if you so choose.
+`spersist-connect.sh` downloads your remote `.spersist` file and uses it to create an ssh tunnel from your local computer to the compute node. Since we used `--vnc` in the above example you can also open a TurboVNC Desktop, if you so choose.
 
 
-**Note**: It is in your best interest to set up [ssh keys](https://www.cyberciti.biz/faq/how-to-set-up-ssh-keys-on-linux-unix/) to connect to the system. Otherwise you will need to enter your password three (yes *three*) times to run `spersist-connect.sh`. The purpose of this is not to annoy you, but to 1. check the existence of the remote `.spersist` file, 2. download `.spersist`, and 3. connect to the compute node.
+**Note**: It is in your best interest to set up [ssh keys](https://www.cyberciti.biz/faq/how-to-set-up-ssh-keys-on-linux-unix/) to connect to the system. Otherwise you will need to enter your password three (yes *three*) times to run `spersist-connect.sh`. The purpose of this is not to annoy you, but to 1) check the existence of the remote `.spersist` file, 2) download `.spersist`, and 3) connect to the compute node.
 
 ### .spersist environment variables
 `$PORT1 ... $PORTn`: tunnels to the compute node, any number of tunnels are accepted. One example of port usage is to connect your local browser to a remote jupyter notebook:
