@@ -15,7 +15,7 @@ The workflow occurs in two steps:
   * Load tmux `module load tmux`
   * Start a tmux session: `tmux`
   * Initiate an spersist session: `spersist --vnc --tunnel`
-    - NB: `--vnc` and `--tunnel` are optional, any number of tunnels are accepted
+    - NB: At least one `--tunnel` is required, and `--vnc` is optional. Any number of `--tunnel`s greater than 1 are also accepted
   * Save your session environment variables using helper script: `spersist-store.sh`
 
   At this point you can keep your terminal open, or close out. As long as you do not `exit` the session, it will remain open.
