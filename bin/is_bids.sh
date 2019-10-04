@@ -48,7 +48,7 @@ for i in $@; do :
 			echo
 			echo "ERROR: Unknown option: $1"
 			usage
-			echo 1
+			exit 1
 	esac
 done
 
