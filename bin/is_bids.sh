@@ -89,6 +89,6 @@ else
 		if [[ ! `command -v singularity` ]]; then
 			module load singularity
 		fi
-		singularity run -B ${dir}:/data ${image} ${verb} /data
+		singularity run --cleanenv --no-home -B ${dir}:/src_data ${image} ${verb} /src_data
 	fi
 fi
