@@ -8,6 +8,7 @@ import os, sys
 # specify default size (or other split options)
 # what happens if log file already exists? append?
 # option to descend directory and tar each directory at that level?
+# print number of objects directory will be divided into to stdout
 
 # default object size
 default_size = 5 # in GB
