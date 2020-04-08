@@ -1,0 +1,94 @@
+#!/usr/bin/env python
+
+from pathlib import Path
+import argparse
+import os, sys
+
+# to do:
+# specify default size (or other split options)
+# what happens if log file already exists? append?
+# option to descend directory and tar each directory at that level?
+
+# default object size
+default_size = 5 # in GB
+
+def split_needed(directory):
+	'''
+	Get directory size to decide whether to split or not
+	'''
+	gb = 1024**3
+	size = sum(f.stat().st_size for f in Path(directory).glob('**/*') if f.is_file())/gb
+	if size<=default_size:
+		split = False
+	else:
+		split = True
+
+	return split
+
+def Build(args):
+	'''
+	Build the full tar > (split) > obj_put >> log command
+	'''
+	# tar
+	cmd = f'tar -czf - {args.directory} | '
+
+	# split?
+	if not args.nosplit:
+		if not args.debug:
+			print('Checking directory size...')
+
+		if split_needed(args.directory):
+			cmd += f'split -b {default_size}G --filter="obj_put -v {args.vault} --full-objname --verbose --stdin $PWD/$FILE" - {args.directory}.tar.gz. '
+		else:
+			if not args.debug:
+				print(f'  Directory is under {default_size}GB, no split needed')
+
+			cmd += f'obj_put -v {args.vault} --full-objname --verbose --stdin $PWD/{args.directory}.tar.gz '
+
+	else:
+		cmd += f'obj_put -v {args.vault} --full-objname --verbose --stdin $PWD/{args.directory}.tar.gz '
+
+	# log
+	if args.log:
+		cmd += f'>> {log_dir}/{log_name}'
+
+	return cmd
+
+if __name__ == '__main__':
+	description = f'This script will convert a directory to equal-sized tarballs ({default_size}GB) and uploads each to object storage using obj_put. Tarballs are created in memory and not written to disk.'
+
+	# parse input
+	parser = argparse.ArgumentParser(description=description, add_help = True)
+	parser.add_argument('-v', '--vault', action='store', required=True, dest='vault', help='Object storage vault')
+	parser.add_argument('-l', '--log', action='store',dest='log', help='Log name (and location, if specified)')
+	#parser.add_argument('-s', '--size', action='store',dest='size', default=default_size, help='Size to split the directory tarball into')
+	parser.add_argument('-nosplit',action='store_true', help='If specified, do NOT split the tarball into uniform objects. Script will simply generate one tarball and upload to VAULT.')
+	parser.add_argument('-debug',action='store_true', help='Rather than run the command print it for debugging purposes')
+	parser.add_argument('directory', action='store', help='Directory to tar and upload to object storage VAULT')
+	args = parser.parse_args()
+
+	# check inputs
+	if not os.path.isdir(args.directory):
+		sys.stderr.write(f'{args.directory} is not a valid directory!\n')
+		sys.exit(-1)
+
+	if args.log:
+		spl = args.log.rsplit('/',1)
+		if len(spl)==2:
+			log_dir = spl[0]
+			log_name = spl[1]
+			if not os.path.isdir(log_dir):
+				sys.stderr.write(f'{log_dir} is not a valid directory!\n')
+				sys.exit(-1)
+		else:
+			log_dir = os.getcwd()
+			log_name = spl[0]
+
+	# build and run command (unless debug)
+	if args.debug:
+		print(Build(args))
+	else:
+		command = Build(args)
+		print('Running command...')
+		os.system(command)
+		print('Done!\n')
