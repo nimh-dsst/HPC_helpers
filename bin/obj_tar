@@ -101,6 +101,5 @@ if __name__ == "__main__":
 		print(f"{command}\n")
 	else:
 		print("Running command...")
-		print("")
 		os.system(command)
 		print("Done!\n")
