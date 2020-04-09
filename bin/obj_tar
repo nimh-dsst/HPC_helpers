@@ -6,7 +6,7 @@ import os, sys
 import math
 
 # to do:
-# specify default size (or other split options)
+# add other split options other than size? Just number of objects?
 # what happens if log file already exists? append?
 # option to descend directory and tar each directory at that level?
 # maybe default to writing a log to current directory, but allow user to specify custom name and path?
@@ -14,17 +14,17 @@ import math
 # default object size
 default_size = 5 # in GB
 
-def split_needed(directory):
+def split_needed(directory,size):
 	"""
 	Get directory size to decide whether to split or not
 	"""
 	gb = 1024**3
-	size = sum(f.stat().st_size for f in Path(directory).glob("**/*") if f.is_file())/gb
-	if size<=default_size:
+	dir_size = sum(f.stat().st_size for f in Path(directory).glob("**/*") if f.is_file())/gb
+	if dir_size<=args.size:
 		split = False
 	else:
 		split = True
-		num = math.ceil(size/default_size)
+		num = math.ceil(dir_size/args.size)
 
 	return split, num
 
@@ -40,15 +40,15 @@ def Build(args):
 		if not args.debug:
 			print("Checking directory size...")
 
-		split, num_objs = split_needed(args.directory)
+		split, num_objs = split_needed(args.directory, args.size)
 		if split:
-			cmd += f"split -b {default_size}G --filter='obj_put -v {args.vault} --full-objname --verbose --stdin $PWD/$FILE' - {args.directory}.tar.gz. "
+			cmd += f"split -b {args.size}G --filter='obj_put -v {args.vault} --full-objname --verbose --stdin $PWD/$FILE' - {args.directory}.tar.gz. "
 			if not args.debug:
-				print(f"  Directory will be split into {num_objs} objects")
+				print(f"  Directory will be split into {num_objs} {args.size}GB objects")
 
 		else:
 			if not args.debug:
-				print(f"  Directory is under {default_size}GB, no split needed")
+				print(f"  Directory is under {args.size}GB, no split needed")
 
 			cmd += f"obj_put -v {args.vault} --full-objname --verbose --stdin $PWD/{args.directory}.tar.gz "
 
@@ -65,13 +65,13 @@ def Build(args):
 	return cmd
 
 if __name__ == "__main__":
-	description = f"This script will convert a directory to equal-sized tarballs ({default_size}GB) and uploads each to object storage using obj_put. Tarballs are created in memory and not written to disk."
+	description = f"This script will convert a directory to equal-sized tarballs and uploads each to object storage using obj_put. Tarballs are created in memory and not written to disk."
 
 	# parse input
 	parser = argparse.ArgumentParser(description=description, add_help = True)
 	parser.add_argument("-v", "--vault", action="store", required=True, dest="vault", help="Object storage vault")
-	parser.add_argument("-l", "--log", action="store",dest="log", help="Log name (and location, if specified)")
-	#parser.add_argument("-s", "--size", action="store",dest="size", default=default_size, help="Size to split the directory tarball into")
+	parser.add_argument("-l", "--log", action="store", dest="log", help="Log name (and location, if specified)")
+	parser.add_argument("-s", "--size", action="store", dest="size", type=int, default=5, help="Size to split the directory tarball into, in GB. Default is 5")
 	parser.add_argument("-nosplit",action="store_true", help="If specified, do NOT split the tarball into uniform objects. Script will simply generate one tarball and upload to VAULT.")
 	parser.add_argument("-debug",action="store_true", help="Rather than run the command print it for debugging purposes")
 	parser.add_argument("directory", action="store", help="Directory to tar and upload to object storage VAULT")
