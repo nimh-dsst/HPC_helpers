@@ -6,13 +6,11 @@ import os, sys
 import math
 
 # to do:
+# add a unique string identifier to object name?
 # add other split options other than size? Just number of objects?
 # what happens if log file already exists? append?
 # option to descend directory and tar each directory at that level?
 # maybe default to writing a log to current directory, but allow user to specify custom name and path?
-
-# default object size
-default_size = 5 # in GB
 
 def split_needed(directory,size):
 	"""
