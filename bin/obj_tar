@@ -20,6 +20,7 @@ def split_needed(directory,size):
 	dir_size = sum(f.stat().st_size for f in Path(directory).glob("**/*") if f.is_file())/gb
 	if dir_size<=args.size:
 		split = False
+		num = None
 	else:
 		split = True
 		num = math.ceil(dir_size/args.size)
