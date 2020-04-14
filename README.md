@@ -66,9 +66,9 @@ If this is not the case or if you'd like to use another singularity image, pleas
 
 ## obj_tar
 
-This script accepts a directory, generates a tarball in memory, splits the tarball into uniform chucks (if necssary), and then uploads it to an object storage vault. For more information on object storage, see [here](https://hpc.nih.gov/storage/object.html). Specifcially, this script builds a shell script command that pipes the output of `tar` into `obj_put`. If the directory exceeds a size limit the tarball is split using the `split` command. This script will also print a log that records the stdout of obj_put so that you have a history of the objects you've archived.
+This script accepts a directory, generates a tarball in memory, splits the tarball into uniform chucks (if necssary), and then uploads it to an object storage vault. For more information on object storage, see [here](https://hpc.nih.gov/storage/object.html). Specifcially, this script builds a shell script command that pipes the output of `tar` into `obj_put`. If the directory exceeds a size limit the tarball is split using the `split` command. This script will also print a log that records the stdout of `obj_put` so that you have a history of the objects you've archived.
 
-Hardcoded arguments for `obj_put` include `--full-objname` and `--verbose`. Further customization of you `obj_put` command is planned but not implemented.
+Hardcoded arguments for `obj_put` include `--full-objname` and `--verbose`. Further customization of your `obj_put` command is planned but not implemented.
 
 Usage: `obj_tar -v VAULT [options] directory`
 
