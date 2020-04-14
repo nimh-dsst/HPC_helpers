@@ -79,7 +79,8 @@ Usage: `obj_tar -v VAULT [options] directory`
 
 [options]:  
   -h, --help                display this help file and exit  
-  -l, --log                 log name (and location, if specified)
+  -l LOG, --log LOG         record stdout of obj_put to LOG. If only a filename
+                            LOG will be written to current directory, if directory is specified, well LOG will go there
   -s SIZE, --size SIZE      size to split the tarball into, in GB
                               default is 5(GB)
   -nosplit                  if specified, do NOT split the tarball into
