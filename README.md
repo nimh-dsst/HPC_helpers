@@ -64,5 +64,28 @@ If this is not the case or if you'd like to use another singularity image, pleas
                     default will look in the same directory as is_bids.sh  
 </pre>
 
+## obj_tar
 
+This script accepts a directory, generates a tarball in memory, splits the tarball into uniform chucks (if necssary), and then uploads it to an object storage vault. For more information on object storage, see [here](https://hpc.nih.gov/storage/object.html). Specifcially, this script builds a shell script command that pipes the output of `tar` into `obj_put`. If the directory exceeds a size limit the tarball is split using the `split` command. This script will also print a log that records the stdout of obj_put so that you have a history of the objects you've archived.
+
+Hardcoded arguments for `obj_put` include `--full-objname` and `--verbose`. Further customization of you `obj_put` command is planned but not implemented.
+
+Usage: `obj_tar -v VAULT [options] directory`
+
+<pre>
+[positional arguments]:
+  -v VAULT, --vault VAULT   object storage vault
+  directory                 directory to be archived
+
+[options]:  
+  -h, --help                display this help file and exit  
+  -l, --log                 log name (and location, if specified)
+  -s SIZE, --size SIZE      size to split the tarball into, in GB
+                              default is 5(GB)
+  -nosplit                  if specified, do NOT split the tarball into
+                            uniform objects. Script will simply generate
+                            one tarball and upload it to VAULT
+  -debug                    rather than run the command, print the full built
+                            built command for debugging purposes
+</pre>
 

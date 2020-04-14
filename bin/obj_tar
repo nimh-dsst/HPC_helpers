@@ -6,6 +6,7 @@ import os, sys
 import math
 
 # to do:
+# add a commit tag to the log
 # add a unique string identifier to object name?
 # add other split options other than size? Just number of objects?
 # what happens if log file already exists? append?
