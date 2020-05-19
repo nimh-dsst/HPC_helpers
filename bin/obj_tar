@@ -8,6 +8,7 @@ __doc__ = \
 # written by dmoracze
 
 from pathlib import Path
+import subprocess
 import argparse
 import os, sys
 import math
@@ -82,21 +83,6 @@ def build_parser():
 	
 	return parser
 
-def split_needed(directory,size):
-	"""
-	Get directory size to decide whether to split or not
-	"""
-	gb = 1024**3
-	dir_size = sum(f.stat().st_size for f in Path(directory).glob("**/*") if f.is_file())/gb
-	if dir_size<=size:
-		split = False
-		num = None
-	else:
-		split = True
-		num = math.ceil(dir_size/size)
-
-	return split, num
-
 def Build(args):
 	"""
 	Build the full tar > (split) > obj_put >> log command
@@ -140,6 +126,24 @@ def Build(args):
 		cmd += f">> {args.log_dir}/{args.log_name}"
 
 	return cmd
+
+def split_needed(directory,size):
+	"""
+	Get directory size to decide whether to split or not
+	"""
+	gb = 1024**3
+	dir_size = sum(f.stat().st_size for f in Path(directory).glob("**/*") if f.is_file())/gb
+	if dir_size<=size:
+		split = False
+		num = None
+	else:
+		split = True
+		num = math.ceil(dir_size/size)
+
+	return split, num
+
+def gen_obj_file(args):
+	pass
 
 if __name__ == "__main__":
 	Main()
