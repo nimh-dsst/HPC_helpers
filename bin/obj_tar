@@ -1,4 +1,11 @@
 #!/usr/bin/env python
+__doc__ = \
+	"""
+	This script will convert a directory to equal-sized tarballs and uploads 
+	each to object storage using obj_put. Tarballs are created in memory and 
+	not written to disk.
+	"""
+# written by dmoracze
 
 from pathlib import Path
 import argparse
@@ -7,74 +14,13 @@ import math
 
 # to do:
 # add a commit tag to the log
-# add a unique string identifier to object name?
 # add other split options other than size? Just number of objects?
 # what happens if log file already exists? append?
 # option to descend directory and tar each directory at that level?
 # maybe default to writing a log to current directory, but allow user to specify custom name and path?
 
-def split_needed(directory,size):
-	"""
-	Get directory size to decide whether to split or not
-	"""
-	gb = 1024**3
-	dir_size = sum(f.stat().st_size for f in Path(directory).glob("**/*") if f.is_file())/gb
-	if dir_size<=args.size:
-		split = False
-		num = None
-	else:
-		split = True
-		num = math.ceil(dir_size/args.size)
-
-	return split, num
-
-def Build(args):
-	"""
-	Build the full tar > (split) > obj_put >> log command
-	"""
-	# tar
-	cmd = f"tar -czf - {args.directory} | "
-
-	# split?
-	if not args.nosplit:
-		if not args.debug:
-			print("Checking directory size...")
-
-		split, num_objs = split_needed(args.directory, args.size)
-		if split:
-			cmd += f"split -b {args.size}G --filter='obj_put -v {args.vault} --full-objname --verbose --stdin $PWD/$FILE' - {args.directory}.tar.gz. "
-			if not args.debug:
-				print(f"  Directory will be split into {num_objs} {args.size}GB objects")
-
-		else:
-			if not args.debug:
-				print(f"  Directory is under {args.size}GB, no split needed")
-
-			cmd += f"obj_put -v {args.vault} --full-objname --verbose --stdin $PWD/{args.directory}.tar.gz "
-
-		if not args.debug:
-			print()
-
-	else:
-		cmd += f"obj_put -v {args.vault} --full-objname --verbose --stdin $PWD/{args.directory}.tar.gz "
-
-	# log
-	if args.log:
-		cmd += f">> {log_dir}/{log_name}"
-
-	return cmd
-
-if __name__ == "__main__":
-	description = f"This script will convert a directory to equal-sized tarballs and uploads each to object storage using obj_put. Tarballs are created in memory and not written to disk."
-
-	# parse input
-	parser = argparse.ArgumentParser(description=description, add_help = True)
-	parser.add_argument("-v", "--vault", action="store", required=True, dest="vault", help="Object storage vault")
-	parser.add_argument("-l", "--log", action="store", dest="log", help="Log name (and location, if specified)")
-	parser.add_argument("-s", "--size", action="store", dest="size", type=int, default=5, help="Size to split the directory tarball into, in GB. Default is 5")
-	parser.add_argument("-nosplit",action="store_true", help="If specified, do NOT split the tarball into uniform objects. Script will simply generate one tarball and upload to VAULT.")
-	parser.add_argument("-debug",action="store_true", help="Rather than run the command print it for debugging purposes")
-	parser.add_argument("directory", action="store", help="Directory to tar and upload to object storage VAULT")
+def Main():
+	parser = build_parser()
 	args = parser.parse_args()
 
 	# check inputs
@@ -85,17 +31,21 @@ if __name__ == "__main__":
 	if args.log:
 		spl = args.log.rsplit("/",1)
 		if len(spl)==2:
-			log_dir = spl[0]
-			log_name = spl[1]
-			if not os.path.isdir(log_dir):
-				sys.stderr.write(f"{log_dir} is not a valid directory!\n")
+			args.log_dir = spl[0]
+			args.log_name = spl[1]
+			if not os.path.isdir(args.log_dir):
+				sys.stderr.write(f"{args.log_dir} is not a valid directory!\n")
 				sys.exit(-1)
+
+			if not os.access(args.log_dir, os.W_OK):
+				Print(f"You do not have permission to write to {args.log_dir}!\n")
+				Print(f"Instead, {args.log_name} will be written to {Path.home()}")
+				args.log_dir = Path.home()
 		else:
-			log_dir = os.getcwd()
-			log_name = spl[0]
+			args.log_dir = "$PWD"
+			args.log_name = spl[0]
 
 	# build and run command (unless debug)
-	print()
 	command = Build(args)
 	if args.debug:
 		print(f"{command}\n")
@@ -103,3 +53,93 @@ if __name__ == "__main__":
 		print("Running command...")
 		os.system(command)
 		print("Done!\n")
+
+def build_parser():
+	parser = argparse.ArgumentParser(description=__doc__,add_help = True)
+
+	parser.add_argument("-v", "--vault", action="store", required=True, dest="vault", 
+		help="Object storage vault name")
+
+	parser.add_argument("-l", "--log", action="store", dest="log", 
+		help="Log name (and location, if specified)")
+
+	parser.add_argument("-p", "--prefix", action="store", dest="prefix", type=str, default="full", 
+		help="Add PREFIX onto each object's name. PREFIX can contain slashes. "
+		"Default is to use the directory's parent directory as the prefix")
+
+	parser.add_argument("-s", "--size", action="store", dest="size", type=int, default=5, 
+		help="Size to split the directory tarball into, in GB. Default is 5")
+
+	parser.add_argument("-nosplit", action="store_true", 
+		help="If specified, do NOT split the tarball into uniform objects. "
+		"Script will simply generate one tarball and upload to VAULT.")
+
+	parser.add_argument("-debug", action="store_true", 
+		help="Rather than run the command print it for debugging purposes")
+
+	parser.add_argument("directory", action="store", 
+		help="Directory to tar and upload to object storage VAULT")
+	
+	return parser
+
+def split_needed(directory,size):
+	"""
+	Get directory size to decide whether to split or not
+	"""
+	gb = 1024**3
+	dir_size = sum(f.stat().st_size for f in Path(directory).glob("**/*") if f.is_file())/gb
+	if dir_size<=size:
+		split = False
+		num = None
+	else:
+		split = True
+		num = math.ceil(dir_size/size)
+
+	return split, num
+
+def Build(args):
+	"""
+	Build the full tar > (split) > obj_put >> log command
+	"""
+	# get objname options
+	if args.prefix == "full":
+		pre = "$PWD/"
+	else:
+		pre = args.prefix
+		if pre[-1] != "/":
+			pre = f"{pre}/"
+
+	# tar
+	cmd = f"tar -czf - {args.directory} | "
+
+	# split?
+	if not args.nosplit:
+		if not args.debug:
+			print("Checking directory size...")
+
+		split, num_objs = split_needed(args.directory, args.size)
+		if split:
+			cmd += f"split -b {args.size}G --filter='obj_put -v {args.vault} --verbose --stdin {pre}$FILE' - {args.directory}.tar.gz. "
+			if not args.debug:
+				print(f"  Directory will be split into {num_objs} {args.size}GB objects")
+
+		else:
+			if not args.debug:
+				print(f"  Directory is under {args.size}GB, no split needed")
+
+			cmd += f"obj_put -v {args.vault} --verbose --stdin {pre}{args.directory}.tar.gz "
+
+		if not args.debug:
+			print()
+
+	else:
+		cmd += f"obj_put -v {args.vault} --verbose --stdin {pre}{args.directory}.tar.gz "
+
+	# log
+	if args.log:
+		cmd += f">> {args.log_dir}/{args.log_name}"
+
+	return cmd
+
+if __name__ == "__main__":
+	Main()
