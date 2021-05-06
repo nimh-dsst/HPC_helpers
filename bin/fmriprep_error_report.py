@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 __doc__ = \
 	'''
+	This script takes an fmriprep derivatives directory and combs through all of the subject's
+	report html files for errors. It will return the number of subjects with no errors, the
+	number of subjects with no html files, and the number of subjects with errors. In addition,
+	It will write a json summary of the report, including the subject IDs for the various lists
+	and a list of error summaries for each subject, if specified.
 	'''
 
 # written by dmoracze, 2021-04-XX
