@@ -90,3 +90,34 @@ Usage: `obj_tar -v VAULT [options] directory`
                             built command for debugging purposes
 </pre>
 
+## fmriprep_error_report.py
+
+This script takes an fmriprep derivatives directory and combs through all of the subject's report html files for errors. It will return the number of subjects with no errors, the number of subjects with no html files, and the number of subjects with errors. In addition, it will write a json summary of the report, including the subject IDs for the various lists and a list of error summaries for each subject, if specified.
+
+<pre>
+  [positional arguments]:
+  fmriprep_dir          fmriprep derivatives directory.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -e, --errors          Include a dict of errors from the fmriprep reports
+                        from each subject. This dict will only include
+                        subjects with errors. The format will be a dict where
+                        the subject ID is the key and the value is a list of
+                        errors for that subject. Report will only include the
+                        <summary> tag for each error, you will have to look at
+                        the full report to see the full error.
+  -s, --subj_list       Include a list of subject IDs in the output. A subject
+                        ID dict with two entries will be created: a list of
+                        subjects with no errors and a list of subjects with
+                        errors.
+  -o output, --out-file output
+                        Output directory and file. Output will be saved in
+                        JSON format. If no directory is provided, current
+                        directory will be used. To differentiate output
+                        directory from output file you must include the /
+                        character. If no filename is provided, a default name
+                        derived from the fmriprep directory will be used. If
+                        --out-file is not specified, output report will be
+                        printed to stdout.
+</pre>
