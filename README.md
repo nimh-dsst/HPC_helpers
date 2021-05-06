@@ -105,7 +105,7 @@ optional arguments:
                         subjects with errors. The format will be a dict where
                         the subject ID is the key and the value is a list of
                         errors for that subject. Report will only include the
-                        <summary> tag for each error, you will have to look at
+                        summary tag for each error, you will have to look at
                         the full report to see the full error.
   -s, --subj_list       Include a list of subject IDs in the output. A subject
                         ID dict with two entries will be created: a list of
