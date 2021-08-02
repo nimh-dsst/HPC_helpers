@@ -16,6 +16,12 @@ import json
 import argparse
 from glob import glob
 try:
+    from tqdm import tqdm
+except:    
+    print('Please install tqdm first:')
+    print('$ pip install tqdm')
+    sys.exit(1)
+try:
     from bs4 import BeautifulSoup
 except:
     print('Please install BeautifulSoup first:')
@@ -111,12 +117,8 @@ class CreateReport(object):
 		summary = dict()
 		tool_width = len(self.settings.fmriprep.subjs)
 		# setup toolbar
-		sys.stdout.write("[%s]" % (" " * tool_width))
-		sys.stdout.flush()
-		sys.stdout.write("\b" * (tool_width+1)) # return to start of line, after '['
-		for i, s in enumerate(self.settings.fmriprep.subjs):
-			sys.stdout.write('-')
-			sys.stdout.flush()
+		print('Looking for the each subjects html:')
+		for i, s in enumerate(tqdm(self.settings.fmriprep.subjs)):
 			# find the subject's html
 			html_file = self._find_html(s)
 			if not html_file:
@@ -127,14 +129,16 @@ class CreateReport(object):
 				html = open(html_file, 'r')
 				soup = BeautifulSoup(html, 'html.parser')
 				errs = soup.find(id='errors')
-				# get the errors, if any
-				if 'No errors to report!' in errs.text:
-					done.append(s)
+				# get the errors, if any. Also check if errs is of type None.
+				if errs:
+					if 'No errors to report!' in errs.text:
+						done.append(s)
+					else:
+						errors_dict[s] = [s.text for s in errs.findAll('summary')]
+						errors.append(s)
 				else:
-					errors_dict[s] = [s.text for s in errs.findAll('summary')]
+					errors_dict[s] = ['There is no error key on the html']
 					errors.append(s)
-
-		sys.stdout.write("]\n") # this ends the progress bar
 
 		# create summary
 		summary['done'] = len(done)
@@ -182,10 +186,10 @@ def build_parser():
 
 	parser.add_argument('-e', '--errors', action='store_true',
 		help='''
-		Include a dict of errors from the fmriprep reports from each subject. 
-		This dict will only include subjects with errors. The format will be a dict where the 
+		Include a dict of errors from the fmriprep reports from each subject.
+		This dict will only include subjects with errors. The format will be a dict where the
 		subject ID is the key and the value is a list of errors for that subject.
-		Report will only include the <summary> tag for each error, 
+		Report will only include the <summary> tag for each error,
 		you will have to look at the full report to see the full error.
 		''')
 
@@ -197,14 +201,14 @@ def build_parser():
 
 	parser.add_argument('-o', '--out-file', metavar='output', action='store', dest='out_file',
 		help='''
-		Output directory and file. Output will be saved in JSON format. 
+		Output directory and file. Output will be saved in JSON format.
 		If no directory is provided, current directory will be used.
 		To differentiate output directory from output file you must include the / character.
 		If no filename is provided, a default name derived from the fmriprep directory will be used.
 		If --out-file is not specified, output report will be printed to stdout.
 		''')
 
-	parser.add_argument('fmriprep_dir', action='store', type=str, 
+	parser.add_argument('fmriprep_dir', action='store', type=str,
 		help='fmriprep derivatives directory.')
 
 	return parser
