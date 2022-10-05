@@ -106,6 +106,7 @@ class CreateReport(object):
 		self.fin = dict()
 		no_html = []
 		done = []
+		html_err = []
 		errors = []
 		errors_dict = dict()
 		summary = dict()
@@ -127,22 +128,27 @@ class CreateReport(object):
 				html = open(html_file, 'r')
 				soup = BeautifulSoup(html, 'html.parser')
 				errs = soup.find(id='errors')
-				# get the errors, if any
-				if 'No errors to report!' in errs.text:
-					done.append(s)
-				else:
-					errors_dict[s] = [s.text for s in errs.findAll('summary')]
-					errors.append(s)
+				try:
+					# get the errors, if any
+					if 'No errors to report!' in errs.text:
+						done.append(s)
+					else:
+						errors_dict[s] = [s.text for s in errs.findAll('summary')]
+						errors.append(s)
+				except:
+					html_err.append(s)
 
 		sys.stdout.write("]\n") # this ends the progress bar
 
 		# create summary
 		summary['done'] = len(done)
+		summary['html_error'] = len(html_err)
 		summary['no_html'] = len(no_html)
 		summary['subjs_w_errors'] = len(errors)
 		# create final dict
 		self.fin['summary'] = summary
 		self.fin['done'] = done
+		self.fin['html_error'] = html_err
 		self.fin['no_html'] = no_html
 		self.fin['subjs_w_errors'] = errors
 		self.fin['errors'] = errors_dict
@@ -158,6 +164,7 @@ class CreateReport(object):
 			self.out_dict['summary'] = self.fin['summary']
 			if self.settings.args['subj_list']:
 				self.out_dict['done'] = self.fin['done']
+				self.out_dict['html_error'] = self.fin['html_error']
 				self.out_dict['no_html'] = self.fin['no_html']
 				self.out_dict['subjs_w_errors'] = self.fin['subjs_w_errors']
 			if self.settings.args['errors']:
@@ -173,6 +180,7 @@ class CreateReport(object):
 
 		# print summary
 		print(f'\n{self.fin["summary"]["done"]} subjects completed with no errors')
+		print(f'{self.fin["summary"]["html_error"]} subjects had errors with their html file')
 		print(f'{self.fin["summary"]["no_html"]} subjects had no fmriprep html file')
 		print(f'{self.fin["summary"]["subjs_w_errors"]} subjects had fmriprep errors\n')
 
