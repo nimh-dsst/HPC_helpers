@@ -27,6 +27,7 @@ class ParseArgs(object):
 		self.args = vars(args)
 		self.fmriprep = self._prep_fmriprep(self.args['fmriprep_dir'])
 		self.out = self._prep_output(self.args)
+		self.raw = self._prep_rawdata(self.args)
 
 	def _prep_output(self, args):
 		'''
@@ -81,6 +82,34 @@ class ParseArgs(object):
 		self.subjs = [i.rsplit('/',1)[1] for i in dirs]
 
 		return self
+
+	def _prep_rawdata(self, args):
+		'''
+		If a rawdata directory was give, get the subjects to corss reference with fmriprep outputs
+		'''
+		if not args['rawdata']:
+			return None
+		else:
+			raw = args['rawdata']
+			# check if it's a directory
+			if not os.path.isdir(raw):
+				print('ERROR: rawdata dir is not a valid directory!')
+				print('Skipping...')
+				return None
+
+			# make sure there is at least one subject directory
+			dirs = glob(f'{raw}/sub*')
+			if not len([d for d in dirs if os.path.isdir(d)])>=1:
+				print(f'ERROR: No subject directories found in {raw}!')
+				print('Skipping...')
+				return None
+
+			self.rawdir = raw
+			# get the subject IDs
+			self.rawsubjs = [i.rsplit('/',1)[1] for i in dirs]
+
+			return self
+
 
 class CreateReport(object):
 	def __init__(self, settings):
@@ -138,6 +167,9 @@ class CreateReport(object):
 				except:
 					html_err.append(s)
 
+			if self.settings.raw:
+				missing_subjs = list(set(self.settings.raw.subjs) - set(self.settings.fmriprep.subjs))
+
 		sys.stdout.write("]\n") # this ends the progress bar
 
 		# create summary
@@ -145,11 +177,15 @@ class CreateReport(object):
 		summary['html_error'] = len(html_err)
 		summary['no_html'] = len(no_html)
 		summary['subjs_w_errors'] = len(errors)
+		if self.settings.raw:
+			summary['missing_subjs'] = len(missing_subjs)
 		# create final dict
 		self.fin['summary'] = summary
 		self.fin['done'] = done
 		self.fin['html_error'] = html_err
 		self.fin['no_html'] = no_html
+		if self.settings.raw:
+			self.fin['missing_subjs'] = missing_subjs
 		self.fin['subjs_w_errors'] = errors
 		self.fin['errors'] = errors_dict
 		print('++ report finished')
@@ -167,6 +203,8 @@ class CreateReport(object):
 				self.out_dict['html_error'] = self.fin['html_error']
 				self.out_dict['no_html'] = self.fin['no_html']
 				self.out_dict['subjs_w_errors'] = self.fin['subjs_w_errors']
+				if self.settings.raw:
+					self.out_dict['missing_subjs'] = self.fin['missing_subjs']
 			if self.settings.args['errors']:
 				self.out_dict['errors'] = self.fin['errors']
 
@@ -182,6 +220,8 @@ class CreateReport(object):
 		print(f'\n{self.fin["summary"]["done"]} subjects completed with no errors')
 		print(f'{self.fin["summary"]["html_error"]} subjects had errors with their html file')
 		print(f'{self.fin["summary"]["no_html"]} subjects had no fmriprep html file')
+		if self.settings.raw:
+			print(f'{self.fin["summary"]["missing_subjs"]} subjects exist in rawdata but have no directory in fmriprep')
 		print(f'{self.fin["summary"]["subjs_w_errors"]} subjects had fmriprep errors\n')
 
 
@@ -212,6 +252,13 @@ def build_parser():
 		If --out-file is not specified, output report will be printed to stdout.
 		''')
 
+	parser.add_argument('-r', '--rawdata', metavar='rawdata', action='store', dest='rawdata',
+		help='''
+		Rawdata directory. If this option is given, the script will compare the subjects in rawdata
+		to the subjects in the fmriprep directory. It will then report if any subject directories are
+		missing from the fmriprep directory.
+		''')
+
 	parser.add_argument('fmriprep_dir', action='store', type=str, 
 		help='fmriprep derivatives directory.')
 
@@ -222,6 +269,7 @@ def Main():
 	args = parser.parse_args()
 	settings = ParseArgs(args)
 	report = CreateReport(settings)
+	print(vars(report.settings))
 	report.run()
 	report.write()
 
