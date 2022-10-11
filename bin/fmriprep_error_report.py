@@ -269,7 +269,6 @@ def Main():
 	args = parser.parse_args()
 	settings = ParseArgs(args)
 	report = CreateReport(settings)
-	print(vars(report.settings))
 	report.run()
 	report.write()
 
