@@ -42,10 +42,9 @@ class ParseSettings(object):
 		'''
 		subjs = glob(f'{fmriprep}/sub-*')
 		subjs = [i.rsplit('/',1)[1] for i in subjs]
+		old = False
 		if os.path.isdir(f"{fmriprep}/{subjs[0]}/fmriprep"):
 			old = True
-		elif os.path.isdir(f"{fmriprep}/{subjs[0]}/{subjs[0]}"):
-			old = False
 
 		return old
 
