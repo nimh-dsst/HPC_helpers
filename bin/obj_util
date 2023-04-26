@@ -1,0 +1,293 @@
+#!/usr/bin/env python
+__doc__ = \
+	"""
+	"""
+# written by dmoracze
+
+from pathlib import Path
+from datetime import datetime
+from glob import glob
+import subprocess
+import argparse
+import os, sys
+import math
+
+# to do:
+# add a commit tag to the log
+# add other split options other than size? Just number of objects?
+# what happens if log file already exists? append?
+# option to descend directory and tar each directory at that level?
+# maybe default to writing a log to current directory, but allow user to specify custom name and path?
+
+
+
+
+
+def prep_put_cmds(args):
+	"""
+	Given arguments, prepare a list of the obj_put commands
+	"""
+	cmds = []
+	# only one directory
+	if args.obj_is == 'single':
+		cmds.append(f"tar -czf - {args.directory} | ")
+
+	# group objects one level down
+	elif args.obj_is == 'group':
+		grps = []
+		non_grps = []
+		dirs = [i.split('/')[-1] for i in glob(f"{args.directory}/*")]
+		for d in dirs:
+			if args.key in d:
+				cmds.append(f"tar -czf - {args.directory}/{d} | ")
+			else:
+				non_grps.append(d)
+
+		if non_grps:
+			non_grps = [f"{args.directory}/{i}" for i in non_grps]
+			cmds.append(f"tar -czf - {f' '.join(non_grps)} | ")
+
+		print(cmds)
+
+	elif args.obj_is == 'file':
+		cmd = f"obj_put -v {args.vault} --recursive "
+		if args.full_path:
+			cmd += "--full-objname "
+		if args.prefix:
+			cmd += f"--prefix {args.prefix} "
+		if args.suffix:
+			cmd += f"--suffix {args.suffix} "
+		cmd += args.directory
+
+		print(cmd)
+
+
+	if args.chunk:
+		pass 
+
+
+
+
+
+	# # get objname options
+	# if args.prefix == "full":
+	# 	pre = "$PWD/"
+	# else:
+	# 	pre = args.prefix
+	# 	if pre[-1] != "/":
+	# 		pre = f"{pre}/"
+
+	# # tar
+	# cmd = f"tar -czf - {args.directory} | "
+
+	# # split?
+	# if not args.nosplit:
+	# 	if not args.debug:
+	# 		print("Checking directory size...")
+
+	# 	split, num_objs = split_needed(args.directory, args.size)
+	# 	if split:
+	# 		cmd += f"split -b {args.size}G --filter='obj_put -v {args.vault} --verbose --stdin {pre}$FILE' - {args.directory}.tar.gz. "
+	# 		if not args.debug:
+	# 			print(f"  Directory will be split into {num_objs} {args.size}GB objects")
+
+	# 	else:
+	# 		if not args.debug:
+	# 			print(f"  Directory is under {args.size}GB, no split needed")
+
+	# 		cmd += f"obj_put -v {args.vault} --verbose --stdin {pre}{args.directory}.tar.gz "
+
+	# 	if not args.debug:
+	# 		print()
+
+	# else:
+	# 	cmd += f"obj_put -v {args.vault} --verbose --stdin {pre}{args.directory}.tar.gz "
+
+	# # log
+	# if args.log:
+	# 	cmd += f">> {args.log_dir}/{args.log_name}"
+
+	return cmds
+
+def split_needed(directory,size):
+	"""
+	Get directory size to decide whether to split or not
+	"""
+	gb = 1024**3
+	dir_size = sum(f.stat().st_size for f in Path(directory).glob("**/*") if f.is_file())/gb
+	if dir_size<=size:
+		split = False
+		num = None
+	else:
+		split = True
+		num = math.ceil(dir_size/size)
+
+	return split, num
+
+def check_args(args):
+	'''
+	some general argument checks
+	'''
+	if args.action == "put":
+		# check directory
+		if not os.path.isdir(args.directory):
+			sys.stderr.write(f"{args.directory} is not a valid directory!\n")
+			sys.exit(-1)
+		else:
+			# remove trailing / if given, doesn't really make a difference but I like the paths to be clean
+			if args.directory[-1] == '/':
+				args.directory = args.directory[:-1]
+
+		# check grouping
+		if args.obj_is == "group" and not args.key:
+			sys.stderr.write(f"You wanted to group objects but did not provide a grouping key! \n"
+				"--group_by is required if --obj_is group is specified \n\n"
+				"see obj_util put -h for more info\n")
+			sys.exit(-1)
+
+		# check chunking
+		if args.chunk_log and not args.chunk:
+			sys.stderr.write(f"You specified that you want chunk logs but did not enable the --chunk option \n"
+				"If --chunk_log is given, you are required to specify a chunk size \n\n"
+				"see obj_util put -h for more info\n")
+			sys.exit(-1)
+
+		# prep log
+		if args.log:
+			# split directory and filename
+			spl = args.log.rsplit("/",1)
+			if len(spl)==2:
+				args.log_dir = spl[0]
+				args.log_name = spl[1]
+				if not os.path.isdir(args.log_dir):
+					sys.stderr.write(f"{args.log_dir} is not a valid directory!\n")
+					sys.exit(-1)
+				if not os.access(args.log_dir, os.W_OK):
+					print(f"You do not have permission to write to {args.log_dir}!\n")
+					print(f"Instead, {args.log_name} will be written to {Path.home()}")
+					args.log_dir = Path.home()
+			# if only filename was given
+			else:
+				args.log_dir = os.getcwd()
+				args.log_name = spl[0]
+		else:
+			# if no log option was given
+			now = datetime.now()
+			# format time
+			now =  (now.year*10000000000)+(now.month*100000000)+(now.day*1000000)+(now.hour*10000)+(now.minute*100)+now.second
+			args.log_dir = os.getcwd()
+			args.log_name = f"{os.getlogin()}_{args.vault}_log_{now}.csv"
+
+	elif args.action == "get":
+		if not os.path.isfile(args.log):
+			sys.stderr.write(f"{args.log} is not a valid file!\n")
+			sys.exit(-1)
+
+	elif args.action == "rm":
+		if not os.path.isfile(args.log):
+			sys.stderr.write(f"{args.log} is not a valid file!\n")
+			sys.exit(-1)
+
+	return args
+
+def build_parser():
+	# main parser 
+	parser = argparse.ArgumentParser(description=__doc__,add_help=True)
+	subparsers = parser.add_subparsers(dest="action", help="Action type. "
+		"For help on each action: obj_util <action> -h")
+
+	# put action 
+	put_parser = subparsers.add_parser("put")
+
+	put_parser.add_argument("-v", "--vault", action="store", required=True, dest="vault", 
+		help="Object storage vault name")
+
+	put_parser.add_argument("-l", "--log", action="store", dest="log", 
+		help="Log name (and location, if specified). If not given, default log name will be <user>_<vault>_<datetime>.csv "
+		"and will be written to the directory from which you ran obj_util.")
+
+	put_parser.add_argument("-o", "--obj_is", action="store", dest="obj_is", type=str, choices=['single','group','file'], default='single',
+		help="How do you want to define objects? Default is single. "
+		"single: top level of the given directory will be the object, "
+		"group: group the sub-directories by a common naming scheme (see --group_by), "
+		"file: each file within the directory will be its own object")
+
+	put_parser.add_argument("-g", "--group_by", action="store", dest="key", type=str, 
+		help="If obj_is==group, this is the grouping key used to determine object groups."
+		"Example: 'sub-' to group BIDS subject directorties as the grouping factor."
+		"All files and directories that do NOT meet KEY will be added to a single tarball.")
+
+	put_parser.add_argument("-c", "--chunk", action="store", dest="chunk", type=int, 
+		help="If given, tarball(s) will be split into similarly-sized chunks, in GB. Default is 5. "
+		"If this option is NOT given, tarball splitting will not happen")
+
+	put_parser.add_argument("-chunk_log", action="store_true", 
+		help="If --chunk is given and this flag is used, the script will write a log of the files contained within each chunk. "
+		"Chunk logs will be written to same directory as LOG.")
+
+	put_parser.add_argument("-f", "--full_path", action="store_true",
+		help="Use this option to store the full filesystem path as the object name. Default: True")
+
+	put_parser.add_argument("-p", "--prefix", action="store", dest="prefix", type=str, 
+		help="Add PREFIX onto each object's name. PREFIX can contain slashes.")
+
+	put_parser.add_argument("-s", "--suffix", action="store", dest="suffix", type=str, 
+		help="Add SUFFIX onto each object's name. SUFFIX can contain slashes")
+
+	put_parser.add_argument("-debug", action="store_true", 
+		help="Rather than run the obj_put command print it for debugging purposes")
+
+	put_parser.add_argument("directory", action="store",
+		help="Directory to tar and upload to object storage VAULT")
+
+	# get action 
+	get_parser = subparsers.add_parser("get")
+
+	get_parser.add_argument("-v", "--vault", action="store", required=True, dest="vault", 
+		help="Object storage vault name")
+
+	get_parser.add_argument("-k", "--key", action="store", dest="key", type=str, 
+		help="Subset log to only include objects that match KEY.")
+
+	get_parser.add_argument("log", action="store", 
+		help="Log file (and location, if specified).")
+
+	# rm action
+	rm_parser = subparsers.add_parser("rm")
+
+	rm_parser.add_argument("-v", "--vault", action="store", required=True, dest="vault", 
+		help="Object storage vault name")
+
+	rm_parser.add_argument("-k", "--key", action="store", dest="key", type=str, 
+		help="Subset log to only include objects that match KEY.")
+
+	rm_parser.add_argument("log", action="store", 
+		help="Log file (and location, if specified).")
+	
+	return parser
+
+def Main():
+	parser = build_parser()
+	settings = check_args(parser.parse_args())
+	prep_put_cmds(settings)
+
+	# if settings.action == "put":
+	# 	# build and run command (unless debug)
+	# 	command = Build(args)
+	# 	if args.debug:
+	# 		print(f"{command}\n")
+	# 	else:
+	# 		print("Running command...")
+	# 		os.system(command)
+	# 		print("Done!\n")
+
+	# elif settings.action == "get":
+	# 	pass
+
+	# elif settings.action == "rm":
+	# 	pass
+
+
+
+if __name__ == "__main__":
+	Main()
